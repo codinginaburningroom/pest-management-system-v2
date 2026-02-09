@@ -128,22 +128,22 @@ export default function MoARotationScreen() {
             <View style={styles.rotationExample}>
               <View style={styles.rotationStep}>
                 <Text style={styles.rotationStepNumber}>ครั้งที่ 1</Text>
-                <Chip style={styles.moaChipIRAC}>4A (Neonicotinoids)</Chip>
+                <Chip style={styles.moaChipIRAC} textStyle={styles.moaChipText}>4A (Neonicotinoids)</Chip>
               </View>
               <Ionicons name="arrow-down" size={24} color="#4CAF50" />
               <View style={styles.rotationStep}>
                 <Text style={styles.rotationStepNumber}>ครั้งที่ 2</Text>
-                <Chip style={styles.moaChipIRAC}>28 (Diamides)</Chip>
+                <Chip style={styles.moaChipIRAC} textStyle={styles.moaChipText}>28 (Diamides)</Chip>
               </View>
               <Ionicons name="arrow-down" size={24} color="#4CAF50" />
               <View style={styles.rotationStep}>
                 <Text style={styles.rotationStepNumber}>ครั้งที่ 3</Text>
-                <Chip style={styles.moaChipIRAC}>5 (Spinosyns)</Chip>
+                <Chip style={styles.moaChipIRAC} textStyle={styles.moaChipText}>5 (Spinosyns)</Chip>
               </View>
               <Ionicons name="arrow-down" size={24} color="#4CAF50" />
               <View style={styles.rotationStep}>
                 <Text style={styles.rotationStepNumber}>ครั้งที่ 4</Text>
-                <Chip style={styles.moaChipIRAC}>4A (Neonicotinoids)</Chip>
+                <Chip style={styles.moaChipIRAC} textStyle={styles.moaChipText}>4A (Neonicotinoids)</Chip>
               </View>
             </View>
           </View>
@@ -202,39 +202,38 @@ export default function MoARotationScreen() {
             📋 กลุ่ม IRAC (สารกำจัดแมลง)
           </Text>
           <DataTable>
-            <DataTable.Header>
-              <DataTable.Title style={styles.codeColumn}>รหัส</DataTable.Title>
-              <DataTable.Title style={styles.nameColumn}>กลุ่ม MoA</DataTable.Title>
-              <DataTable.Title style={styles.riskColumn}>ความเสี่ยง</DataTable.Title>
+            <DataTable.Header style={styles.tableHeader}>
+              <DataTable.Title style={styles.codeColumnHeader}>รหัส</DataTable.Title>
+              <DataTable.Title style={styles.nameColumnHeader}>กลุ่ม MoA</DataTable.Title>
+              <DataTable.Title style={styles.riskColumnHeader}>ความเสี่ยง</DataTable.Title>
             </DataTable.Header>
 
             {iracGroups.map((group) => (
-              <DataTable.Row key={group.moa_group_id}>
+              <DataTable.Row key={group.moa_group_id} style={styles.tableRow}>
                 <DataTable.Cell style={styles.codeColumn}>
                   <Chip
                     style={styles.codeChip}
-                    textStyle={{ fontSize: 11, fontWeight: 'bold' }}
+                    textStyle={styles.codeChipText}
                   >
                     {group.moa_code}
                   </Chip>
                 </DataTable.Cell>
                 <DataTable.Cell style={styles.nameColumn}>
-                  <Text style={styles.tableCellText}>
-                    {group.moa_name_th.length > 30
-                      ? group.moa_name_th.substring(0, 30) + '...'
-                      : group.moa_name_th}
+                  <Text style={styles.tableCellText} numberOfLines={0}>
+                    {group.moa_name_th}
                   </Text>
                 </DataTable.Cell>
                 <DataTable.Cell style={styles.riskColumn}>
-                  <Chip
+                  <View
                     style={[
                       styles.riskChip,
                       { backgroundColor: getRiskColor(group.resistance_risk) }
                     ]}
-                    textStyle={{ color: 'white', fontSize: 10 }}
                   >
-                    {getRiskLabel(group.resistance_risk)}
-                  </Chip>
+                    <Text style={styles.riskChipText}>
+                      {getRiskLabel(group.resistance_risk)}
+                    </Text>
+                  </View>
                 </DataTable.Cell>
               </DataTable.Row>
             ))}
@@ -248,39 +247,38 @@ export default function MoARotationScreen() {
             📋 กลุ่ม FRAC (สารกำจัดเชื้อรา)
           </Text>
           <DataTable>
-            <DataTable.Header>
-              <DataTable.Title style={styles.codeColumn}>รหัส</DataTable.Title>
-              <DataTable.Title style={styles.nameColumn}>กลุ่ม MoA</DataTable.Title>
-              <DataTable.Title style={styles.riskColumn}>ความเสี่ยง</DataTable.Title>
+            <DataTable.Header style={styles.tableHeader}>
+              <DataTable.Title style={styles.codeColumnHeader}>รหัส</DataTable.Title>
+              <DataTable.Title style={styles.nameColumnHeader}>กลุ่ม MoA</DataTable.Title>
+              <DataTable.Title style={styles.riskColumnHeader}>ความเสี่ยง</DataTable.Title>
             </DataTable.Header>
 
             {fracGroups.map((group) => (
-              <DataTable.Row key={group.moa_group_id}>
+              <DataTable.Row key={group.moa_group_id} style={styles.tableRow}>
                 <DataTable.Cell style={styles.codeColumn}>
                   <Chip
                     style={[styles.codeChip, { backgroundColor: '#4CAF50' }]}
-                    textStyle={{ fontSize: 11, fontWeight: 'bold', color: 'white' }}
+                    textStyle={styles.codeChipText}
                   >
                     {group.moa_code}
                   </Chip>
                 </DataTable.Cell>
                 <DataTable.Cell style={styles.nameColumn}>
-                  <Text style={styles.tableCellText}>
-                    {group.moa_name_th.length > 30
-                      ? group.moa_name_th.substring(0, 30) + '...'
-                      : group.moa_name_th}
+                  <Text style={styles.tableCellText} numberOfLines={0}>
+                    {group.moa_name_th}
                   </Text>
                 </DataTable.Cell>
                 <DataTable.Cell style={styles.riskColumn}>
-                  <Chip
+                  <View
                     style={[
                       styles.riskChip,
                       { backgroundColor: getRiskColor(group.resistance_risk) }
                     ]}
-                    textStyle={{ color: 'white', fontSize: 10 }}
                   >
-                    {getRiskLabel(group.resistance_risk)}
-                  </Chip>
+                    <Text style={styles.riskChipText}>
+                      {getRiskLabel(group.resistance_risk)}
+                    </Text>
+                  </View>
                 </DataTable.Cell>
               </DataTable.Row>
             ))}
@@ -319,12 +317,15 @@ export default function MoARotationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#F3F4F6'
   },
+
+  /* ===== Header ===== */
   headerCard: {
     margin: 16,
     backgroundColor: '#E3F2FD',
-    elevation: 2
+    elevation: 4,
+    borderRadius: 12
   },
   headerContent: {
     flexDirection: 'row',
@@ -335,35 +336,57 @@ const styles = StyleSheet.create({
     flex: 1
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#333'
+    color: '#1F2937'
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 13,
+    color: '#374151',
     marginTop: 4
   },
+
+  /* ===== Cards ===== */
   infoCard: {
     margin: 16,
     marginTop: 8,
-    elevation: 2
+    elevation: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12
   },
+  tableCard: {
+    margin: 16,
+    marginTop: 8,
+    elevation: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12
+  },
+  tipCard: {
+    margin: 16,
+    marginTop: 8,
+    backgroundColor: '#FFF7ED',
+    elevation: 4,
+    borderRadius: 12
+  },
+
+  /* ===== Text ===== */
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1F2937',
     marginBottom: 12
   },
   paragraph: {
-    fontSize: 15,
-    color: '#555',
-    lineHeight: 24
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 26
   },
   bold: {
     fontWeight: 'bold',
-    color: '#333'
+    color: '#111827'
   },
+
+  /* ===== Principle ===== */
   principleBox: {
     marginTop: 12
   },
@@ -373,10 +396,10 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   principleNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#4CAF50',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#22C55E',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12
@@ -388,20 +411,22 @@ const styles = StyleSheet.create({
   },
   principleText: {
     flex: 1,
-    fontSize: 14,
-    color: '#555',
-    lineHeight: 20
+    fontSize: 15,
+    color: '#374151',
+    lineHeight: 22
   },
+
+  /* ===== Example ===== */
   exampleBox: {
     marginTop: 16,
     padding: 16,
-    backgroundColor: '#F1F8E9',
-    borderRadius: 8
+    backgroundColor: '#ECFDF5',
+    borderRadius: 10
   },
   exampleTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#558B2F',
+    color: '#065F46',
     marginBottom: 12
   },
   rotationExample: {
@@ -409,16 +434,26 @@ const styles = StyleSheet.create({
   },
   rotationStep: {
     alignItems: 'center',
-    marginVertical: 4
+    marginVertical: 6
   },
   rotationStepNumber: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 13,
+    color: '#374151',
     marginBottom: 4
   },
   moaChipIRAC: {
-    backgroundColor: '#2196F3'
+    backgroundColor: '#2563EB',
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
+  moaChipText: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  /* ===== Comparison ===== */
   comparisonBox: {
     marginTop: 8
   },
@@ -426,67 +461,115 @@ const styles = StyleSheet.create({
     paddingVertical: 12
   },
   iracBadge: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#2563EB',
     alignSelf: 'flex-start',
     marginBottom: 8
   },
   fracBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#16A34A',
     alignSelf: 'flex-start',
     marginBottom: 8
   },
   comparisonTitle: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1F2937',
     marginBottom: 4
   },
   comparisonDesc: {
     fontSize: 14,
-    color: '#666',
+    color: '#374151',
     marginBottom: 4
   },
   comparisonExample: {
     fontSize: 13,
-    color: '#999',
+    color: '#6B7280',
     fontStyle: 'italic'
   },
   divider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#E5E7EB',
     marginVertical: 12
   },
-  tableCard: {
-    margin: 16,
-    marginTop: 8,
-    elevation: 2
+
+  /* ===== Table ===== */
+  tableHeader: {
+    backgroundColor: '#F3F4F6'
+  },
+  tableRow: {
+    minHeight: 60,
+    paddingVertical: 6
+  },
+  codeColumnHeader: {
+    flex: 1.2,
+    justifyContent: 'center'
+  },
+  nameColumnHeader: {
+    flex: 2.8,
+    justifyContent: 'center'
+  },
+  riskColumnHeader: {
+    flex: 2.0,
+    justifyContent: 'center'
   },
   codeColumn: {
-    flex: 1
+    flex: 1.2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 6
   },
   nameColumn: {
-    flex: 3
+    flex: 2.8,
+    justifyContent: 'center',
+    paddingHorizontal: 10
   },
   riskColumn: {
-    flex: 1.2
+    flex: 2.0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 6
   },
   codeChip: {
-    backgroundColor: '#2196F3',
-    height: 24
+    backgroundColor: '#2563EB',
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 55
+  },
+  codeChipText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFFFFF'
   },
   tableCellText: {
-    fontSize: 12,
-    color: '#333'
+    fontSize: 14,
+    color: '#1F2937',
+    lineHeight: 22,
+    width: '100%'
   },
   riskChip: {
-    height: 22
+    minHeight: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5
   },
-  tipCard: {
-    margin: 16,
-    marginTop: 8,
-    backgroundColor: '#FFF3E0',
-    elevation: 2
+  riskChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    lineHeight: 16,        // ✅ กัน text ถูก crop บน Android
+    textAlignVertical: 'center'
   },
+
+  /* ===== Tips ===== */
   tipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,19 +578,20 @@ const styles = StyleSheet.create({
   tipTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#E65100',
+    color: '#9A3412',
     marginLeft: 8
   },
   tipList: {
     marginTop: 8
   },
   tipItem: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: 15,
+    color: '#374151',
     marginBottom: 8,
-    lineHeight: 20
+    lineHeight: 22
   },
+
   bottomSpacing: {
-    height: 30
+    height: 32
   }
 });

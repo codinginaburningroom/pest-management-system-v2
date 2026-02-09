@@ -61,6 +61,7 @@ export const initDatabase = async () => {
       target_name_en TEXT,
       scientific_name TEXT,
       target_type TEXT CHECK(target_type IN ('insect', 'fungus', 'weed', 'other')),
+      insect_category TEXT CHECK(insect_category IN ('sucking', 'chewing', 'boring', 'other')),
       description TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -285,6 +286,19 @@ export const getPlotById = async (plotId) => {
   return await db.getFirstAsync('SELECT * FROM plots WHERE plot_id = ?', plotId);
 };
 
+export const updatePlot = async (plotId, plotData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE plots SET plot_name = ?, plot_area = ?, soil_type = ?, updated_at = CURRENT_TIMESTAMP WHERE plot_id = ?',
+    plotData.plot_name, plotData.plot_area, plotData.soil_type, plotId
+  );
+};
+
+export const deletePlot = async (plotId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM plots WHERE plot_id = ?', plotId);
+};
+
 // Crop operations
 export const createCrop = async (cropData) => {
   const db = getDatabase();
@@ -298,6 +312,24 @@ export const createCrop = async (cropData) => {
 export const getAllCrops = async () => {
   const db = getDatabase();
   return await db.getAllAsync('SELECT * FROM crops ORDER BY crop_name_th');
+};
+
+export const getCropById = async (cropId) => {
+  const db = getDatabase();
+  return await db.getFirstAsync('SELECT * FROM crops WHERE crop_id = ?', cropId);
+};
+
+export const updateCrop = async (cropId, cropData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE crops SET crop_name_th = ?, crop_name_en = ?, scientific_name = ?, crop_type = ?, description = ? WHERE crop_id = ?',
+    cropData.crop_name_th, cropData.crop_name_en, cropData.scientific_name, cropData.crop_type, cropData.description, cropId
+  );
+};
+
+export const deleteCrop = async (cropId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM crops WHERE crop_id = ?', cropId);
 };
 
 // CropStage operations
@@ -315,12 +347,25 @@ export const getStagesByCrop = async (cropId) => {
   return await db.getAllAsync('SELECT * FROM crop_stages WHERE crop_id = ? ORDER BY stage_order', cropId);
 };
 
+export const updateCropStage = async (stageId, stageData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE crop_stages SET stage_name = ?, stage_order = ?, days_from_planting = ?, description = ? WHERE stage_id = ?',
+    stageData.stage_name, stageData.stage_order, stageData.days_from_planting, stageData.description, stageId
+  );
+};
+
+export const deleteCropStage = async (stageId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM crop_stages WHERE stage_id = ?', stageId);
+};
+
 // Target operations
 export const createTarget = async (targetData) => {
   const db = getDatabase();
   const result = await db.runAsync(
-    'INSERT INTO targets (target_name_th, target_name_en, scientific_name, target_type, description) VALUES (?, ?, ?, ?, ?)',
-    targetData.target_name_th, targetData.target_name_en, targetData.scientific_name, targetData.target_type, targetData.description
+    'INSERT INTO targets (target_name_th, target_name_en, scientific_name, target_type, insect_category, description) VALUES (?, ?, ?, ?, ?, ?)',
+    targetData.target_name_th, targetData.target_name_en, targetData.scientific_name, targetData.target_type, targetData.insect_category, targetData.description
   );
   return result.lastInsertRowId;
 };
@@ -330,9 +375,56 @@ export const getAllTargets = async () => {
   return await db.getAllAsync('SELECT * FROM targets ORDER BY target_name_th');
 };
 
+export const getTargetById = async (targetId) => {
+  const db = getDatabase();
+  return await db.getFirstAsync('SELECT * FROM targets WHERE target_id = ?', targetId);
+};
+
 export const getTargetsByType = async (targetType) => {
   const db = getDatabase();
   return await db.getAllAsync('SELECT * FROM targets WHERE target_type = ? ORDER BY target_name_th', targetType);
+};
+
+export const getTargetsByInsectCategory = async (insectCategory) => {
+  const db = getDatabase();
+  return await db.getAllAsync('SELECT * FROM targets WHERE insect_category = ? ORDER BY target_name_th', insectCategory);
+};
+
+export const updateTarget = async (targetId, targetData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE targets SET target_name_th = ?, target_name_en = ?, scientific_name = ?, target_type = ?, insect_category = ?, description = ? WHERE target_id = ?',
+    targetData.target_name_th, targetData.target_name_en, targetData.scientific_name, targetData.target_type, targetData.insect_category, targetData.description, targetId
+  );
+};
+
+export const deleteTarget = async (targetId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM targets WHERE target_id = ?', targetId);
+};
+
+// ⭐ เพิ่มฟังก์ชันสำหรับ ProductListScreen
+export const getAllInsectCategories = async () => {
+  const db = getDatabase();
+  return await db.getAllAsync(`
+    SELECT DISTINCT insect_category 
+    FROM targets 
+    WHERE insect_category IS NOT NULL
+    ORDER BY insect_category
+  `);
+};
+
+export const getProductsByInsectCategory = async (insectCategory) => {
+  const db = getDatabase();
+  return await db.getAllAsync(`
+    SELECT DISTINCT p.*, m.moa_code, m.moa_name_th, m.classification_system
+    FROM products p
+    INNER JOIN product_targets pt ON p.product_id = pt.product_id
+    INNER JOIN targets t ON pt.target_id = t.target_id
+    LEFT JOIN moa_groups m ON p.moa_group_id = m.moa_group_id
+    WHERE t.insect_category = ?
+    ORDER BY p.product_name
+  `, insectCategory);
 };
 
 // MoA Group operations
@@ -350,9 +442,27 @@ export const getAllMoAGroups = async () => {
   return await db.getAllAsync('SELECT * FROM moa_groups ORDER BY classification_system, moa_code');
 };
 
+export const getMoAGroupById = async (moaGroupId) => {
+  const db = getDatabase();
+  return await db.getFirstAsync('SELECT * FROM moa_groups WHERE moa_group_id = ?', moaGroupId);
+};
+
 export const getMoAGroupsBySystem = async (system) => {
   const db = getDatabase();
   return await db.getAllAsync('SELECT * FROM moa_groups WHERE classification_system = ? ORDER BY moa_code', system);
+};
+
+export const updateMoAGroup = async (moaGroupId, moaData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE moa_groups SET moa_name_th = ?, moa_name_en = ?, mechanism_of_action = ?, target_type = ?, resistance_risk = ? WHERE moa_group_id = ?',
+    moaData.moa_name_th, moaData.moa_name_en, moaData.mechanism_of_action, moaData.target_type, moaData.resistance_risk, moaGroupId
+  );
+};
+
+export const deleteMoAGroup = async (moaGroupId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM moa_groups WHERE moa_group_id = ?', moaGroupId);
 };
 
 // Product operations
@@ -379,6 +489,16 @@ export const getAllProducts = async () => {
   `);
 };
 
+export const getProductById = async (productId) => {
+  const db = getDatabase();
+  return await db.getFirstAsync(`
+    SELECT p.*, m.moa_code, m.moa_name_th, m.classification_system
+    FROM products p
+    LEFT JOIN moa_groups m ON p.moa_group_id = m.moa_group_id
+    WHERE p.product_id = ?
+  `, productId);
+};
+
 export const getProductsByType = async (productType) => {
   const db = getDatabase();
   return await db.getAllAsync(`
@@ -393,6 +513,25 @@ export const getProductsByType = async (productType) => {
 export const getProductsByMoA = async (moaGroupId) => {
   const db = getDatabase();
   return await db.getAllAsync('SELECT * FROM products WHERE moa_group_id = ? ORDER BY product_name', moaGroupId);
+};
+
+export const updateProduct = async (productId, productData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    `UPDATE products SET product_name = ?, manufacturer = ?, product_type = ?, registration_number = ?, 
+     active_ingredient = ?, concentration = ?, formulation = ?, moa_group_id = ?, 
+     recommended_rate_min = ?, recommended_rate_max = ?, rate_unit = ?, phi_days = ?, safety_interval = ? 
+     WHERE product_id = ?`,
+    productData.product_name, productData.manufacturer, productData.product_type, productData.registration_number,
+    productData.active_ingredient, productData.concentration, productData.formulation, productData.moa_group_id,
+    productData.recommended_rate_min, productData.recommended_rate_max, productData.rate_unit, 
+    productData.phi_days, productData.safety_interval, productId
+  );
+};
+
+export const deleteProduct = async (productId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM products WHERE product_id = ?', productId);
 };
 
 // Product-Target operations
@@ -415,6 +554,33 @@ export const getProductsForTarget = async (targetId) => {
     WHERE pt.target_id = ?
     ORDER BY pt.efficacy_rating DESC, p.product_name
   `, targetId);
+};
+
+export const getTargetsForProduct = async (productId) => {
+  const db = getDatabase();
+  return await db.getAllAsync(`
+    SELECT t.*, pt.efficacy_rating, pt.notes
+    FROM targets t
+    INNER JOIN product_targets pt ON t.target_id = pt.target_id
+    WHERE pt.product_id = ?
+    ORDER BY t.target_name_th
+  `, productId);
+};
+
+export const updateProductTargetEfficacy = async (productId, targetId, efficacyRating, notes) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE product_targets SET efficacy_rating = ?, notes = ? WHERE product_id = ? AND target_id = ?',
+    efficacyRating, notes, productId, targetId
+  );
+};
+
+export const unlinkProductFromTarget = async (productId, targetId) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'DELETE FROM product_targets WHERE product_id = ? AND target_id = ?',
+    productId, targetId
+  );
 };
 
 // PlotCrop operations
@@ -440,12 +606,37 @@ export const getActivePlotCrops = async (plotId) => {
   `, plotId);
 };
 
+export const getPlotCropById = async (plotCropId) => {
+  const db = getDatabase();
+  return await db.getFirstAsync(`
+    SELECT pc.*, c.crop_name_th, c.crop_name_en, cs.stage_name, p.plot_name, p.farm_id
+    FROM plot_crops pc
+    INNER JOIN crops c ON pc.crop_id = c.crop_id
+    LEFT JOIN crop_stages cs ON pc.current_stage_id = cs.stage_id
+    INNER JOIN plots p ON pc.plot_id = p.plot_id
+    WHERE pc.plot_crop_id = ?
+  `, plotCropId);
+};
+
 export const updatePlotCropStage = async (plotCropId, stageId) => {
   const db = getDatabase();
   return await db.runAsync(
     'UPDATE plot_crops SET current_stage_id = ?, updated_at = CURRENT_TIMESTAMP WHERE plot_crop_id = ?',
     stageId, plotCropId
   );
+};
+
+export const updatePlotCropStatus = async (plotCropId, status, harvestDate) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    'UPDATE plot_crops SET status = ?, harvest_date = ?, updated_at = CURRENT_TIMESTAMP WHERE plot_crop_id = ?',
+    status, harvestDate, plotCropId
+  );
+};
+
+export const deletePlotCrop = async (plotCropId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM plot_crops WHERE plot_crop_id = ?', plotCropId);
 };
 
 // ApplicationLog operations
@@ -471,6 +662,33 @@ export const getApplicationLogsByPlotCrop = async (plotCropId) => {
     WHERE al.plot_crop_id = ?
     ORDER BY al.application_date DESC, al.application_time DESC
   `, plotCropId);
+};
+
+export const getApplicationLogById = async (logId) => {
+  const db = getDatabase();
+  return await db.getFirstAsync(`
+    SELECT al.*, cs.stage_name
+    FROM application_logs al
+    LEFT JOIN crop_stages cs ON al.stage_id = cs.stage_id
+    WHERE al.log_id = ?
+  `, logId);
+};
+
+export const updateApplicationLog = async (logId, logData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    `UPDATE application_logs SET application_date = ?, application_time = ?, stage_id = ?, 
+     weather_condition = ?, temperature = ?, applicator_name = ?, application_method = ?, 
+     spray_volume = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE log_id = ?`,
+    logData.application_date, logData.application_time, logData.stage_id, logData.weather_condition,
+    logData.temperature, logData.applicator_name, logData.application_method, logData.spray_volume,
+    logData.notes, logId
+  );
+};
+
+export const deleteApplicationLog = async (logId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM application_logs WHERE log_id = ?', logId);
 };
 
 // ApplicationItem operations
@@ -505,6 +723,21 @@ export const getApplicationItemsByLog = async (logId) => {
     LEFT JOIN moa_groups m ON p.moa_group_id = m.moa_group_id
     WHERE ai.log_id = ?
   `, logId);
+};
+
+export const updateApplicationItem = async (itemId, itemData) => {
+  const db = getDatabase();
+  return await db.runAsync(
+    `UPDATE application_items SET product_id = ?, target_id = ?, dosage_rate = ?, 
+     dosage_unit = ?, total_amount = ?, notes = ? WHERE item_id = ?`,
+    itemData.product_id, itemData.target_id, itemData.dosage_rate, itemData.dosage_unit,
+    itemData.total_amount, itemData.notes, itemId
+  );
+};
+
+export const deleteApplicationItem = async (itemId) => {
+  const db = getDatabase();
+  return await db.runAsync('DELETE FROM application_items WHERE item_id = ?', itemId);
 };
 
 // MoA Rotation Analysis
@@ -604,37 +837,79 @@ export const getRecommendedProducts = async (targetId, plotCropId, excludeMoACod
 export default {
   initDatabase,
   getDatabase,
+  // Farm
   createFarm,
   getAllFarms,
   getFarmById,
   updateFarm,
   deleteFarm,
+  // Plot
   createPlot,
   getPlotsByFarm,
   getPlotById,
+  updatePlot,
+  deletePlot,
+  // Crop
   createCrop,
   getAllCrops,
+  getCropById,
+  updateCrop,
+  deleteCrop,
+  // CropStage
   createCropStage,
   getStagesByCrop,
+  updateCropStage,
+  deleteCropStage,
+  // Target
   createTarget,
   getAllTargets,
+  getTargetById,
   getTargetsByType,
+  getTargetsByInsectCategory,
+  updateTarget,
+  deleteTarget,
+  getAllInsectCategories,
+  getProductsByInsectCategory,
+  // MoA Group
   createMoAGroup,
   getAllMoAGroups,
+  getMoAGroupById,
   getMoAGroupsBySystem,
+  updateMoAGroup,
+  deleteMoAGroup,
+  // Product
   createProduct,
   getAllProducts,
+  getProductById,
   getProductsByType,
   getProductsByMoA,
+  updateProduct,
+  deleteProduct,
+  // Product-Target
   linkProductToTarget,
   getProductsForTarget,
+  getTargetsForProduct,
+  updateProductTargetEfficacy,
+  unlinkProductFromTarget,
+  // PlotCrop
   createPlotCrop,
   getActivePlotCrops,
+  getPlotCropById,
   updatePlotCropStage,
+  updatePlotCropStatus,
+  deletePlotCrop,
+  // ApplicationLog
   createApplicationLog,
   getApplicationLogsByPlotCrop,
+  getApplicationLogById,
+  updateApplicationLog,
+  deleteApplicationLog,
+  // ApplicationItem
   createApplicationItem,
   getApplicationItemsByLog,
+  updateApplicationItem,
+  deleteApplicationItem,
+  // MoA Analysis
   getMoAUsageHistory,
   checkMoARotation,
   getRecommendedProducts
