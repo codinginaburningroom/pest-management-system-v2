@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, ActivityIndicator } from 'react-native';
 import * as DB from './services/database';
-import { seedInitialData } from './services/seedData';
 
 // Import Screens
 import FarmListScreen from './screens/FarmListScreen';
@@ -18,7 +18,7 @@ import MoARotationScreen from './screens/MoARotationScreen';
 import RecommendationScreen from './screens/RecommendationScreen';
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 function FarmStack() {
   return (
@@ -78,7 +78,8 @@ function MoAStack() {
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isDbReady, setIsDbReady] = useState(false);
+  const [isApiReady, setIsApiReady] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     initializeApp();
@@ -86,20 +87,18 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
-      console.log('Initializing database...');
+      console.log('Connecting to backend API...');
+      
+      // เชื่อมต่อกับ API
       await DB.initDatabase();
       
-      // Check if data exists
-      const farms = await DB.getAllFarms();
-      
-      if (farms.length === 0) {
-        console.log('No data found, seeding initial data...');
-        await seedInitialData();
-      }
-      
-      setIsDbReady(true);
+      console.log('✅ Successfully connected to backend API');
+      setIsApiReady(true);
+      setError(null);
     } catch (error) {
-      console.error('Failed to initialize app:', error);
+      console.error('❌ Failed to connect to backend API:', error);
+      setError(error.message || 'Cannot connect to backend API');
+      setIsApiReady(false);
     } finally {
       setIsLoading(false);
     }
@@ -107,17 +106,39 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
         <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={{ marginTop: 10 }}>กำลังเตรียมข้อมูล...</Text>
+        <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>
+          กำลังเชื่อมต่อ Backend API...
+        </Text>
       </View>
     );
   }
 
-  if (!isDbReady) {
+  if (!isApiReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>ไม่สามารถเริ่มต้นฐานข้อมูลได้</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', padding: 20 }}>
+        <Ionicons name="cloud-offline" size={80} color="#f44336" />
+        <Text style={{ marginTop: 20, fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center' }}>
+          ไม่สามารถเชื่อมต่อ Backend API ได้
+        </Text>
+        <Text style={{ marginTop: 10, fontSize: 14, color: '#666', textAlign: 'center' }}>
+          {error}
+        </Text>
+        <Text style={{ marginTop: 20, fontSize: 13, color: '#999', textAlign: 'center' }}>
+          กรุณาตรวจสอบ:{'\n'}
+          1. Backend server กำลังทำงานหรือไม่{'\n'}
+          2. IP address ใน config.js ถูกต้องหรือไม่{'\n'}
+          3. เครื่องเชื่อมต่อ network เดียวกันหรือไม่
+        </Text>
+        <View style={{ marginTop: 30 }}>
+          <Text 
+            style={{ color: '#4CAF50', fontSize: 16, fontWeight: 'bold' }}
+            onPress={initializeApp}
+          >
+            ลองอีกครั้ง
+          </Text>
+        </View>
       </View>
     );
   }
